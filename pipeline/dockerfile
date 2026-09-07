@@ -1,15 +1,52 @@
+# Usamos Python 3.13.10 como imagen base.
+# "slim" es una versión reducida de la imagen, con menos componentes
+# y, por lo tanto, un menor tamaño.
 FROM python:3.13.10-slim
 
+
+# Copiamos el ejecutable de uv desde la imagen oficial de uv.
+# --from indica que el archivo se obtiene de otra imagen de Docker,
+# en lugar de copiarlo desde nuestro proyecto.
+# /uv = archivo de origen dentro de la imagen de uv.
+# /bin/ = ubicación donde lo colocaremos en nuestra imagen.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/
 
+
+# Establecemos /app como directorio de trabajo dentro del contenedor.
+# A partir de aquí, las instrucciones que trabajen con archivos
+# utilizarán /app como directorio actual.
 WORKDIR /app
 
+
+# Agregamos el entorno virtual de Python al PATH.
+# De esta manera, los ejecutables instalados en /app/.venv/bin
+# pueden utilizarse directamente, por ejemplo: python.
 ENV PATH="/app/.venv/bin:$PATH"
 
+
+# Copiamos primero los archivos relacionados con la configuración
+# del proyecto y sus dependencias.
+# pyproject.toml = configuración y dependencias del proyecto.
+# uv.lock = versiones exactas de las dependencias.
+# .python-version = versión de Python utilizada por el proyecto.
+# Se copian antes del código para aprovechar el cache de Docker.
 COPY pyproject.toml uv.lock .python-version ./
 
+
+# Instalamos las dependencias definidas en uv.lock.
+# --locked obliga a utilizar exactamente las versiones del lockfile.
+# --no-install-project evita que uv intente instalar nuestro propio
+# proyecto como paquete Python.
 RUN uv sync --locked --no-install-project
 
+
+# Copiamos el código de nuestra aplicación al contenedor.
+# pipeline.py (origen) -> pipeline.py (destino dentro de /app).
 COPY pipeline.py pipeline.py
 
+
+# Define el comando que se ejecutará automáticamente cuando
+# se inicie un contenedor basado en esta imagen.
+# Gracias al PATH configurado anteriormente, "python" corresponde
+# al Python del entorno virtual /app/.venv.
 ENTRYPOINT ["python", "pipeline.py"]
