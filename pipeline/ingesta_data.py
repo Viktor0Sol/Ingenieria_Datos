@@ -35,6 +35,19 @@ parse_dates = [
     "tpep_dropoff_datetime"
 ]
 
+import click
+
+@click.command()
+@click.option('--pg-user', default='root', help='PostgreSQL user')
+@click.option('--pg-pass', default='root', help='PostgreSQL password')
+@click.option('--pg-host', default='localhost', help='PostgreSQL host')
+@click.option('--pg-port', default=5432, type=int, help='PostgreSQL port')
+@click.option('--pg-db', default='ny_taxi', help='PostgreSQL database name')
+@click.option('--target-table', default='yellow_taxi_data', help='Target table name')
+def run(pg_user, pg_pass, pg_host, pg_port, pg_db, target_table):
+    # Ingestion logic here
+    pass
+
 def run():
     ano = 2021
     mes = 1
@@ -47,15 +60,14 @@ def run():
 
     # Leer datos de taxi de Nueva York desde un archivo CSV comprimido en formato gzip
     prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/'
-    df = pd.read_csv(prefix + f'yellow_tripdata_{ano}-{mes}.csv.gz')
 
-    engine = create_engine(f'postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}')
+    engine = create_engine(f'postgresql+psycopg://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}')
 
-    target_table = 'yellow_taxi_data'
+    target_table = 'yellow_taxi_data_2'
     chunksize = 100000
 
     df_iter = pd.read_csv(
-    prefix + 'yellow_tripdata_2021-01.csv.gz',
+    prefix + f'yellow_tripdata_{ano}-{mes:02d}.csv.gz',
     dtype=dtype,
     parse_dates=parse_dates,
     iterator=True,

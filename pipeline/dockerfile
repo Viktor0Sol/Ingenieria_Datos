@@ -41,8 +41,8 @@ RUN uv sync --locked --no-install-project
 
 
 # Copiamos el código de nuestra aplicación al contenedor.
-# pipeline.py (origen) -> pipeline.py (destino dentro de /app).
-COPY pipeline.py pipeline.py
+# ingesta_data.py (origen) -> ingesta_data.py (destino dentro de /app).
+COPY ingesta_data.py .
 
 
 # Define el comando que se ejecutará automáticamente cuando
