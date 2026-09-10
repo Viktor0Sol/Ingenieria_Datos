@@ -3,56 +3,13 @@
 
 # In[2]:
 
+from sqlalchemy import create_engine
+import pandas as pd
+import tqdm.auto as tqdm
 
 import pandas as pd
-
-
-# In[9]:
-
-
-# Leer datos de taxi de Nueva York desde un archivo CSV comprimido en formato gzip
-prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/'
-df = pd.read_csv(prefix + 'yellow_tripdata_2021-01.csv.gz')
-
-
-# In[12]:
-
-
-df
-
-
-# In[13]:
-
-
-df.info()
-
-
-# In[8]:
-
-
-df.shape
-
-
-# In[16]:
-
-
-df.dtypes
-
-
-# In[15]:
-
-
-df.isna().sum()
-
-
-# In[17]:
-
-
-df['tpep_pickup_datetime']
-
-
-# In[18]:
-
+from sqlalchemy import create_engine
+from tqdm.auto import tqdm
 
 dtype = {
     "VendorID": "Int64",
@@ -78,29 +35,55 @@ parse_dates = [
     "tpep_dropoff_datetime"
 ]
 
-df = pd.read_csv(
+def run():
+    ano = 2021
+    mes = 1
+
+    pg_user = 'root'
+    pg_password = 'root'
+    pg_host = 'localhost'
+    pg_port = '5432'
+    pg_db = 'ny_taxi'
+
+    # Leer datos de taxi de Nueva York desde un archivo CSV comprimido en formato gzip
+    prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/'
+    df = pd.read_csv(prefix + f'yellow_tripdata_{ano}-{mes}.csv.gz')
+
+    engine = create_engine(f'postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}')
+
+    target_table = 'yellow_taxi_data'
+    chunksize = 100000
+
+    df_iter = pd.read_csv(
     prefix + 'yellow_tripdata_2021-01.csv.gz',
-    nrows=100,
     dtype=dtype,
-    parse_dates=parse_dates
-)
+    parse_dates=parse_dates,
+    iterator=True,
+    chunksize=100000)
+
+    first = True
+
+    for df_chunk in tqdm(df_iter):
+
+        if first:
+            # Create table schema (no data)
+            df_chunk.head(0).to_sql(
+                name=target_table,
+                con=engine,
+                if_exists="replace"
+            )
+            first = False
+            print("Table created")
+
+        # Insert chunk
+        df_chunk.to_sql(
+            name=target_table,
+            con=engine,
+            if_exists="append"
+        )
+
+        print("Inserted:", len(df_chunk))
 
 
-# In[21]:
-
-
-df.info()
-
-
-# In[19]:
-
-
-df['tpep_pickup_datetime']
-
-
-# In[22]:
-
-
-from sqlalchemy import create_engine
-engine = create_engine('postgresql://root:root@localhost:5432/ny_taxi')
-
+if __name__ == "__main__":
+    run()
