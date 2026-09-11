@@ -49,4 +49,4 @@ COPY ingesta_data.py .
 # se inicie un contenedor basado en esta imagen.
 # Gracias al PATH configurado anteriormente, "python" corresponde
 # al Python del entorno virtual /app/.venv.
-ENTRYPOINT ["python", "pipeline.py"]
+ENTRYPOINT ["python", "ingesta_data.py"]

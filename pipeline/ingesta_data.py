@@ -44,26 +44,23 @@ import click
 @click.option('--pg-port', default=5432, type=int, help='PostgreSQL port')
 @click.option('--pg-db', default='ny_taxi', help='PostgreSQL database name')
 @click.option('--target-table', default='yellow_taxi_data', help='Target table name')
-def run(pg_user, pg_pass, pg_host, pg_port, pg_db, target_table):
-    # Ingestion logic here
-    pass
 
-def run():
+def run(pg_user, pg_pass, pg_host, pg_port, pg_db, target_table):
+
     ano = 2021
     mes = 1
 
-    pg_user = 'root'
-    pg_password = 'root'
-    pg_host = 'localhost'
-    pg_port = '5432'
-    pg_db = 'ny_taxi'
+    #pg_user = 'root'
+    #pg_pass = 'root'
+    #pg_host = 'localhost'
+    #pg_port = '5432'
+    #pg_db = 'ny_taxi'
 
     # Leer datos de taxi de Nueva York desde un archivo CSV comprimido en formato gzip
     prefix = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/'
 
-    engine = create_engine(f'postgresql+psycopg://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}')
+    engine = create_engine(f'postgresql+psycopg://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
 
-    target_table = 'yellow_taxi_data_2'
     chunksize = 100000
 
     df_iter = pd.read_csv(
